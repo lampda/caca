@@ -11,6 +11,7 @@ import (
 // and totalBytes+=n each loop
 // but i dont remember if the read thing actually puts
 
+// https://stackoverflow.com/questions/64925992/write-and-read-file-with-same-os-file-in-go
 func ReadFile(file *os.File) ([]byte, error) {
 	defer file.Seek(0, io.SeekStart)
 	buffer := make([]byte, 1024)

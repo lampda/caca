@@ -23,7 +23,7 @@ test_f:
 	go test -v -run $(FN) ./cmd/caca
 
 debug:debug
-	env --chdir=./cmd/caca gdlv debug
+	env --chdir=./cmd/caca gdlv debug steins_gate lampda
 	
 debugt:debugt
 	env --chdir=./cmd/caca gdlv test
