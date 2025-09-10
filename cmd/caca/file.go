@@ -7,9 +7,12 @@ import (
 )
 
 type File struct {
-	Name    string `yaml:"name"`
-	Content string `yaml:"content"`
+	Name    string `json:"name"`
+	Content string `json:"content"`
 }
+
+// func (f File) UnmarshalJSON() ([]byte, error) {
+// }
 
 func (f *File) Create(path string) error {
 	filePath := fmt.Sprintf("%s/%s", path, f.Name)

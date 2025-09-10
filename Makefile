@@ -2,7 +2,13 @@
 # for testing individual modules
 # go test -run TestMyFunction ./...
 go: compile run
+	clear
 	@echo 'Compiled and runned'
+
+what:
+	clear
+	make compile
+	make run
 
 compile:
 	go build -o ./bin/caca -gcflags='all=-N -l' ./cmd/caca   2> ./errors.err

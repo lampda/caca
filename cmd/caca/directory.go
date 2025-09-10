@@ -6,8 +6,8 @@ import (
 )
 
 type Directory struct {
-	Name  string `yaml:"name"`
-	Nodes []Node `yaml:"nodes"`
+	Name  string `json:"name"`
+	Nodes []Node `json:"nodes"`
 }
 
 func (dir *Directory) Create(path string) error {
@@ -25,6 +25,5 @@ func (dir *Directory) Create(path string) error {
 		// 	panik("in this case we should do something nasty maybe just logging instead of breaking everything but yeah")
 		// }
 	}
-
 	return nil
 }

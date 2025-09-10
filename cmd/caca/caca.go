@@ -7,18 +7,21 @@ import (
 
 type Node interface {
 	Create(path string) error
+	// UnmarshalJSON() ([]byte, error)
 }
 
-type Root struct {
-	name string
-	root Node
-}
+// type Node struct {
+// 	IsDir   bool    `json:"is_dir"`
+// 	Name    string  `json:"name"`
+// 	Files   []*Node `json:"files"`
+// 	Content string  `json:"content"`
+// }
 
 type Caca struct {
-	Name       string   `yaml:"name"`
-	GithubUser string   `yaml:"github_user"`
-	Root       Node     `yaml:"root"`
-	Packages   []string `yaml:"packages"`
+	Name       string   `json:"name"`
+	GithubUser string   `json:"github_user"`
+	Root       Node     `json:"root"`
+	Packages   []string `json:"packages"`
 }
 
 // TODO: throw a warning in case files share the same name in same directory
