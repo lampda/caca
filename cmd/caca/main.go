@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 
+	// change it to this gopkg.in/yaml.v3
 	"github.com/ghodss/yaml"
 )
 
@@ -59,62 +60,10 @@ func (s *Silk) fizz() string {
 	return "fizz"
 }
 
-// func (s Silk) UnmarshalJSON(buffer []byte, output interface{}) error {
-// 	fmt.Println(string(buffer))
-// 	return nil
-// }
-
-type Project struct {
-	Name        string `json:"name"`
-	GithubUser  string `json:"github_user"`
-	ProjectNode Node   `json:"project_node"`
-}
-
-type Foo struct {
-	Doe          string   `json:"doe"`
-	Ray          string   `json:"ray"`
-	Pi           float32  `json:"pi"`
-	Xmas         bool     `json:"xmas"`
-	FrenchHens   int      `json:"french-hens"`
-	CallingBirds []string `json:"calling-birds"`
-	XmasFifthDay struct {
-		callingBirds string `json:"calling-birds"`
-		frenchHens   int    `json:"french-hens"`
-		goldenRings  int    `json:"golden-rings"`
-		Partridges   struct {
-			CallingBirds string `json:"calling-birds"`
-			FrenchHens   int    `json:"french-hens"`
-			GoldenRings  int    `json:"golden-rings"`
-		} `json:"partridges"`
-		TurtleDoves int `json:"turtle-doves"`
-	} `json:"xmas-fifth-day"`
-}
-
 // TODO: handle also creating a git repo with https
-
 func main() {
-	// interfaceDebugUnmarshal()
-	// nodes := []map[string]interface{}{
-	// 	map[string]interface{}{
-	// 		"content": "func help(){}",
-	// 		"name":    "helpers.go",
-	// 	},
-	// 	map[string]interface{}{
-	// 		"content": "func main() {fmt.Println(hellope);}",
-	// 		"name":    "main.go"},
-	// }
-	// for _, n := range nodes {
-	// 	AssertFile(n)
-	// }
-	// interfaceSilly()
-	// interfaceSilly()
-	// interface2()
-	// interfaceDebug()
 	write()
 	read()
-	// if false {
-	// } else {
-	// }
 }
 
 func read() {
@@ -129,12 +78,12 @@ func read() {
 	}
 
 	panikIfErr(os.RemoveAll(os.Args[1]))
-	var prj Project
+	var prj Caca
 	buffer, err := os.ReadFile("/home/marcig/personal/summer/caca/test/sabrina.yaml")
 	panikIfErr(err)
 	err = yaml.Unmarshal(buffer, &prj)
 	panikIfErr(err)
-	fmt.Println(string(buffer))
+	prj.Create("./")
 	// fmt.Println(prj)
 }
 
@@ -153,16 +102,16 @@ func write() {
 	caca := Caca{
 		Name:       os.Args[1],
 		GithubUser: os.Args[2],
-		Root: &Directory{
+		Root: Node{
 			Name: os.Args[1],
-			Nodes: []Node{
-				&Directory{
+			Files: []Node{
+				Node{
 					Name: "cmd",
-					Nodes: []Node{
-						&Directory{
+					Files: []Node{
+						Node{
 							Name: os.Args[1],
-							Nodes: []Node{
-								&File{
+							Files: []Node{
+								Node{
 									Name: "main.go",
 									Content: `
 package main
@@ -171,7 +120,7 @@ func main()  {
 	fmt.Println("hola")
 }`,
 								},
-								&File{
+								Node{
 									Name: "logger.go",
 									Content: `
 package main
@@ -187,7 +136,7 @@ func logInfoln(format string, a ...any) {
 	logln(INFO, format, a...)
 }`,
 								},
-								&File{
+								Node{
 									Name: "helpers.go",
 									Content: `
 package main

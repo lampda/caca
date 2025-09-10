@@ -2,20 +2,22 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"os/exec"
 )
 
-type Node interface {
-	Create(path string) error
-	// UnmarshalJSON() ([]byte, error)
-}
-
-// type Node struct {
-// 	IsDir   bool    `json:"is_dir"`
-// 	Name    string  `json:"name"`
-// 	Files   []*Node `json:"files"`
-// 	Content string  `json:"content"`
+// type Node interface {
+// 	Create(path string) error
+// 	// UnmarshalJSON() ([]byte, error)
 // }
+
+type Node struct {
+	IsDir   bool   `json:"is_dir"`
+	Name    string `json:"name"`
+	Files   []Node `json:"files"`
+	Content string `json:"content"`
+}
 
 type Caca struct {
 	Name       string   `json:"name"`
@@ -27,6 +29,38 @@ type Caca struct {
 // TODO: throw a warning in case files share the same name in same directory
 func (caca *Caca) Create(path string) error {
 	return caca.Root.Create(path)
+}
+
+func (node *Node) Create(path string) error {
+	if len(node.Files) > 0 {
+		path = fmt.Sprintf("%s/%s", path, node.Name)
+		err := os.MkdirAll(path, os.ModePerm)
+
+		if err != nil {
+			return err
+		}
+
+		for _, file := range node.Files {
+			err = file.Create(path)
+			logErr(err)
+		}
+		return nil
+
+	} else {
+		filePath := fmt.Sprintf("%s/%s", path, node.Name)
+		file, err := os.Create(filePath)
+		if err != nil {
+			return err
+		}
+		defer file.Seek(0, io.SeekStart)
+		if node.Content != "" {
+			_, err := file.WriteString(node.Content)
+			return err
+		}
+		return nil
+
+	}
+	return nil
 }
 
 func (caca *Caca) InitGit() {
