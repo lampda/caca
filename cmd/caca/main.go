@@ -10,7 +10,10 @@ import (
 	"github.com/ghodss/yaml"
 )
 
-var DEV_PERM = os.ModePerm
+const (
+	TMP_DIR  = "/home/marcig/personal/summer/caca/test/tmp"
+	DEV_PERM = os.ModePerm
+)
 
 // create a cool app
 
@@ -68,10 +71,10 @@ func main() {
 
 func read() {
 	if env == DEV {
-		panikIfErr(os.RemoveAll("tmp"))
+		panikIfErr(os.RemoveAll(TMP_DIR))
 	}
 
-	os.MkdirAll("tmp", DEV_PERM)
+	os.MkdirAll(TMP_DIR, DEV_PERM)
 
 	if len(os.Args) <= 2 {
 		crash("u did not provide project name :3 or github user")
@@ -83,7 +86,7 @@ func read() {
 	panikIfErr(err)
 	err = yaml.Unmarshal(buffer, &prj)
 	panikIfErr(err)
-	prj.Create("./")
+	prj.Create(TMP_DIR)
 	// fmt.Println(prj)
 }
 
