@@ -1,0 +1,2 @@
+# github.com/lampda/caca/cmd/caca
+cmd/caca/main.go:62:36: syntax error: unexpected ) at end of statement

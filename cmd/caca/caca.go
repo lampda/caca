@@ -30,6 +30,23 @@ type Caca struct {
 func (caca *Caca) Create(path string) error {
 	return caca.Root.Create(path)
 }
+func (caca *Caca) GoModInit() error {
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	os.Chdir(caca.Name)
+	githubRepo := fmt.Sprintf("github.com/%s/%s", caca.GithubUser, caca.Name)
+	cmd := exec.Command("go", "mod", "init", githubRepo)
+	// TODO: handle errors here
+	err = cmd.Run()
+	logErr(err)
+	cmd = exec.Command("go", "mod", "tidy")
+	err = cmd.Run()
+	logErr(err)
+	os.Chdir(wd)
+	return nil
+}
 
 func (node *Node) Create(path string) error {
 	if len(node.Files) > 0 {

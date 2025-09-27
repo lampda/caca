@@ -1,4 +1,7 @@
 # C.A.C.A
+vim config
+switch between searching files grepping or all the other functions
+is kinda annoying to close and reopen telescope each time
 
 Create
 A

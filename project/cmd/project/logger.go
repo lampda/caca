@@ -108,11 +108,6 @@ func crash(format string, a ...any) {
 	os.Exit(0)
 }
 
-func exitOnError(format string, a ...any) {
-	logln(ERROR, format, a...)
-	os.Exit(1)
-}
-
 func exit() {
 	os.Exit(0)
 }

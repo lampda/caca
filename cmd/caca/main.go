@@ -1,92 +1,71 @@
 package main
 
 import (
-	"fmt"
+	"bytes"
+	"encoding/json"
 	"io/fs"
 	"os"
-	"strconv"
 
 	// change it to this gopkg.in/yaml.v3
 	"github.com/ghodss/yaml"
 )
 
 const (
-	TMP_DIR  = "/home/marcig/personal/summer/caca/test/tmp"
-	DEV_PERM = os.ModePerm
+	DEV_TMP_DIR = "/home/marcig/personal/summer/caca/test/tmp"
+	DEV_PERM    = os.ModePerm
 )
 
 // create a cool app
 
-type Fuzz interface {
-	fizz() string
-	MarshalJSON() ([]byte, error)
-	UnmarshalJSON(data []byte) error
-}
-
-type Silk struct {
-	Hornet bool `json:"hornet"`
-}
-
-type Song struct {
-	Bababui string `json:"bababui"`
-}
-
-func (s *Song) fizz() string {
-	return "fizz"
-}
-
-func (s *Song) MarshalJSON() ([]byte, error) {
-	fmt.Println("marshal")
-	return []byte(s.Bababui), nil
-}
-
-func (s *Song) UnmarshalJSON(data []byte) error {
-	fmt.Println("unmarshal")
-	s.Bababui = string(data)
-	return nil
-}
-
-func (s *Silk) MarshalJSON() ([]byte, error) {
-	return []byte(strconv.FormatBool(s.Hornet)), nil
-}
-
-func (s *Silk) UnmarshalJSON(data []byte) error {
-	hornet, err := strconv.ParseBool(string(data))
-	if err != nil {
-		return err
-	}
-	s.Hornet = hornet
-	return nil
-}
-
-func (s *Silk) fizz() string {
-	return "fizz"
-}
-
 // TODO: handle also creating a git repo with https
-func main() {
+func initCaca() {
 	write()
 	read()
 }
 
+func caca() {
+	if len(os.Args) <= 2 {
+		exitOnError("please provide the following: <project_name> <github_user> <template.json>")
+	}
+	projectName := os.Args[1]
+	userName := os.Args[2]
+	templatePath := "/home/marcig/personal/summer/caca/test/basic.json"
+	if len(os.Args) > 3 {
+		templatePath = os.Args[3]
+	}
+	if env == DEV {
+		panikIfErr(os.RemoveAll(projectName))
+	}
+	var prj Caca
+	buffer, err := os.ReadFile(templatePath)
+	panikIfErr(err)
+	buffer = bytes.ReplaceAll(buffer, []byte("__project__"), []byte(projectName))
+	buffer = bytes.ReplaceAll(buffer, []byte("__user__"), []byte(userName))
+	// err = yaml.Unmarshal(buffer, &prj)
+	err = json.Unmarshal(buffer, &prj)
+	panikIfErr(err)
+	prj.Create("./")
+	prj.GoModInit()
+}
+
 func read() {
 	if env == DEV {
-		panikIfErr(os.RemoveAll(TMP_DIR))
+		panikIfErr(os.RemoveAll(DEV_TMP_DIR))
 	}
 
-	os.MkdirAll(TMP_DIR, DEV_PERM)
+	os.MkdirAll(DEV_TMP_DIR, DEV_PERM)
 
 	if len(os.Args) <= 2 {
 		crash("u did not provide project name :3 or github user")
 	}
 
-	panikIfErr(os.RemoveAll(os.Args[1]))
+	panikIfErros.RemoveAll(os.Args[1]))
 	var prj Caca
 	buffer, err := os.ReadFile("/home/marcig/personal/summer/caca/test/sabrina.yaml")
 	panikIfErr(err)
 	err = yaml.Unmarshal(buffer, &prj)
 	panikIfErr(err)
-	prj.Create(TMP_DIR)
+	prj.Create(DEV_TMP_DIR)
 	// fmt.Println(prj)
 }
 
