@@ -8,8 +8,11 @@ App
 ## scaffolding app
 
 *flags*
+
 -name="<project_name>"
+
 -template-path="<path_to_project_template>"
+
 -template-name="<template_name_in_config>"
 
 # working with it in a less loser way
