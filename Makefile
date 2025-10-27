@@ -5,7 +5,7 @@ compile:
 	
 run:
 	@clear
-	./bin/caca
+	./bin/caca -name="tmp/princess" -template-name="guml"
 
 compile_test:
 	@go test -v ./cmd/caca

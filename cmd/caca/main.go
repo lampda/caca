@@ -145,11 +145,13 @@ type config struct {
 func main() {
 
 	var projectName string
-	var path string
+	var templatePath string
+	var templateName string
 	var filesContentToReplace []string
 
 	flag.StringVar(&projectName, "name", EMPTY, "Name for the project")
-	flag.StringVar(&path, "path", EMPTY, "Template's path")
+	flag.StringVar(&templatePath, "template-path", EMPTY, "Template's path")
+	flag.StringVar(&templateName, "template-name", EMPTY, "Template name to use")
 	home := os.Getenv("HOME")
 	flag.Parse()
 
@@ -158,7 +160,7 @@ func main() {
 		os.Exit(-1)
 	}
 
-	if path == EMPTY {
+	if templatePath == EMPTY {
 		b, err := os.ReadFile(fmt.Sprintf("%s/.config/caca/caca.json", home))
 
 		if err != nil {
@@ -174,9 +176,15 @@ func main() {
 			os.Exit(-1)
 		}
 
+		targetTemplateName := cfg.DefaultTemplate
+
+		if templateName != EMPTY {
+			targetTemplateName = templateName
+		}
+
 		for _, t := range cfg.Templates {
-			if t.TemplateName == cfg.DefaultTemplate {
-				path = t.Path
+			if t.TemplateName == targetTemplateName {
+				templatePath = t.Path
 				filesContentToReplace = t.FilesContentToReplace
 				break
 			}
@@ -187,7 +195,7 @@ func main() {
 	var err error
 
 	// this thing replaces
-	b := filepath.Base(path)
+	b := filepath.Base(templatePath)
 	caca := CACA{
 		projectName:           projectName,
 		files:                 nil,
@@ -195,7 +203,7 @@ func main() {
 		filesContentToReplace: slices.Concat(filesContentToReplace, []string{"Makefile"}),
 	}
 
-	err = filepath.WalkDir(path, caca.analizeDir)
+	err = filepath.WalkDir(templatePath, caca.analizeDir)
 
 	if err != nil {
 		logErr(err)
