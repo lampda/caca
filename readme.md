@@ -8,7 +8,7 @@ Cool
 
 App
 
-*flags*
+# flags
 
 -name="<project_name>"
 
