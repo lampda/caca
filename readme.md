@@ -1,11 +1,12 @@
 # CACA
 
 Create 
-A 
-Cool 
-App
 
-## scaffolding app
+A 
+
+Cool 
+
+App
 
 *flags*
 
