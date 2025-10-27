@@ -1,156 +1,218 @@
 package main
 
 import (
-	"bytes"
+	"bufio"
 	"encoding/json"
+	"flag"
+	"fmt"
 	"io/fs"
 	"os"
-
-	// change it to this gopkg.in/yaml.v3
-	"github.com/ghodss/yaml"
+	"path/filepath"
+	"slices"
+	"strings"
+	"unicode/utf8"
 )
 
-const (
-	DEV_TMP_DIR = "/home/marcig/personal/summer/caca/test/tmp"
-	DEV_PERM    = os.ModePerm
+var (
+	ErrIsNotValidTextFile = fmt.Errorf("file is not readable")
 )
 
-// create a cool app
+func readFileIfIsText(path string) ([]byte, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
 
-// TODO: handle also creating a git repo with https
-func initCaca() {
-	write()
-	read()
+	defer file.Close()
+
+	fileScanner := bufio.NewScanner(file)
+	fileScanner.Split(bufio.ScanLines)
+	fileScanner.Scan()
+
+	if fileScanner.Err() != nil {
+		return nil, err
+	}
+
+	if !utf8.ValidString(fileScanner.Text()) {
+		return nil, nil
+	}
+
+	b := fileScanner.Bytes()
+
+	for {
+		keep := fileScanner.Scan()
+		if fileScanner.Err() != nil {
+			return nil, err
+		}
+		if !keep {
+			break
+		}
+
+		b = append(b, fileScanner.Bytes()...)
+		b = append(b, '\n')
+	}
+
+	return b, nil
 }
 
-func caca() {
-	if len(os.Args) <= 2 {
-		exitOnError("please provide the following: <project_name> <github_user> <template.json>")
-	}
-	projectName := os.Args[1]
-	userName := os.Args[2]
-	templatePath := "/home/marcig/personal/summer/caca/test/basic.json"
-	if len(os.Args) > 3 {
-		templatePath = os.Args[3]
-	}
-	if env == DEV {
-		panikIfErr(os.RemoveAll(projectName))
-	}
-	var prj Caca
-	buffer, err := os.ReadFile(templatePath)
-	panikIfErr(err)
-	buffer = bytes.ReplaceAll(buffer, []byte("__project__"), []byte(projectName))
-	buffer = bytes.ReplaceAll(buffer, []byte("__user__"), []byte(userName))
-	// err = yaml.Unmarshal(buffer, &prj)
-	err = json.Unmarshal(buffer, &prj)
-	panikIfErr(err)
-	prj.Create("./")
-	prj.GoModInit()
+type CACA struct {
+	projectName           string
+	originalProjectName   string
+	files                 []File
+	filesContentToReplace []string
 }
 
-func read() {
-	if env == DEV {
-		panikIfErr(os.RemoveAll(DEV_TMP_DIR))
-	}
-
-	os.MkdirAll(DEV_TMP_DIR, DEV_PERM)
-
-	if len(os.Args) <= 2 {
-		crash("u did not provide project name :3 or github user")
-	}
-
-	panikIfErros.RemoveAll(os.Args[1]))
-	var prj Caca
-	buffer, err := os.ReadFile("/home/marcig/personal/summer/caca/test/sabrina.yaml")
-	panikIfErr(err)
-	err = yaml.Unmarshal(buffer, &prj)
-	panikIfErr(err)
-	prj.Create(DEV_TMP_DIR)
-	// fmt.Println(prj)
+type File struct {
+	fullPath string
+	path     string
+	name     string
+	content  string
+	mode     fs.FileMode
 }
 
-func write() {
-	if env == DEV {
-		panikIfErr(os.RemoveAll("tmp"))
+func (c *CACA) analizeDir(path string, d fs.DirEntry, err error) error {
+
+	if d.IsDir() {
+		return nil
+	}
+	info, err := d.Info()
+
+	if err != nil {
+		return err
 	}
 
-	os.MkdirAll("tmp", DEV_PERM)
-	if len(os.Args) <= 2 {
-		crash("u did not provide project name :3 or github user")
+	b, err := readFileIfIsText(path)
+
+	if err != nil {
+		return err
 	}
 
-	panikIfErr(os.RemoveAll(os.Args[1]))
+	content := string(b)
 
-	caca := Caca{
-		Name:       os.Args[1],
-		GithubUser: os.Args[2],
-		Root: Node{
-			Name: os.Args[1],
-			Files: []Node{
-				Node{
-					Name: "cmd",
-					Files: []Node{
-						Node{
-							Name: os.Args[1],
-							Files: []Node{
-								Node{
-									Name: "main.go",
-									Content: `
-package main
+	/*
+		if the curr file is a binary file
+		is not an error, but there is not
+		content, and we are just copying
+		the files that are text
+	*/
 
-func main()  {
-	fmt.Println("hola")
-}`,
-								},
-								Node{
-									Name: "logger.go",
-									Content: `
-package main
+	if b != nil {
+		// match := fmt.Sprintf(".*/%s", c.originalBasePath)
+		// regexp.Match(match, path)
 
-import (
-	"fmt"
-	"os"
-	"runtime/pprof"
+		newPath := sillySwapProjectName(path, c.originalProjectName, c.projectName)
+		currFileName := d.Name()
 
-	"github.com/charmbracelet/lipgloss"
-)
-func logInfoln(format string, a ...any) {
-	logln(INFO, format, a...)
-}`,
-								},
-								Node{
-									Name: "helpers.go",
-									Content: `
-package main
+		if slices.Contains(c.filesContentToReplace, currFileName) {
+			content = strings.ReplaceAll(content, c.originalProjectName, c.projectName)
+		}
 
-import (
-	"errors"
-	"io"
-	"os"
+		c.files = append(c.files, File{
+			fullPath: newPath,
+			path:     filepath.Dir(newPath),
+			name:     currFileName,
+			content:  content,
+			mode:     info.Mode(),
+		})
+
+	}
+
+	return nil
+}
+
+var (
+	EMPTY = "<empty>"
 )
 
-func FileWriteString(file *os.File, str string) (int, error) {
-	defer file.Seek(0, io.SeekStart)
-	return file.WriteString(str)
+type dirRegex struct {
+	FileName string `json:"file_name"`
+	Regex    string `json:"regex"`
+	Replace  string `json:"replace"`
 }
 
-func FileWrite(file *os.File, buffer []byte) (int, error) {
-	defer file.Seek(0, io.SeekStart)
-	return file.Write(buffer)
-}`,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
+type template struct {
+	TemplateName          string     `json:"template_name"`
+	Path                  string     `json:"path"`
+	FilesContentToReplace []string   `json:"files_to_replace"`
+	Regexes               []dirRegex `json:"regexes"`
+}
+
+type config struct {
+	DefaultTemplate string     `json:"default_template"`
+	Templates       []template `json:"templates"`
+}
+
+func main() {
+
+	var projectName string
+	var path string
+	var filesContentToReplace []string
+
+	flag.StringVar(&projectName, "name", EMPTY, "Name for the project")
+	flag.StringVar(&path, "path", EMPTY, "Template's path")
+	home := os.Getenv("HOME")
+	flag.Parse()
+
+	if projectName == EMPTY {
+		logError("please provide a project name")
+		os.Exit(-1)
 	}
 
-	panikIfErr(caca.Create("./"))
+	if path == EMPTY {
+		b, err := os.ReadFile(fmt.Sprintf("%s/.config/caca/caca.json", home))
 
-	b, err := yaml.Marshal(caca)
-	panikIfErr(err)
-	panikIfErr(os.WriteFile("sabrina.yaml", b, fs.ModePerm))
-	// fmt.Println(string(b))
+		if err != nil {
+			prettyLogErr(err, "please provide a template path")
+			os.Exit(-1)
+		}
+
+		var cfg config
+		err = json.Unmarshal(b, &cfg)
+
+		if err != nil {
+			logErr(err)
+			os.Exit(-1)
+		}
+
+		for _, t := range cfg.Templates {
+			if t.TemplateName == cfg.DefaultTemplate {
+				path = t.Path
+				filesContentToReplace = t.FilesContentToReplace
+				break
+			}
+		}
+
+	}
+
+	var err error
+
+	// this thing replaces
+	b := filepath.Base(path)
+	caca := CACA{
+		projectName:           projectName,
+		files:                 nil,
+		originalProjectName:   b,
+		filesContentToReplace: slices.Concat(filesContentToReplace, []string{"Makefile"}),
+	}
+
+	err = filepath.WalkDir(path, caca.analizeDir)
+
+	if err != nil {
+		logErr(err)
+		os.Exit(-1)
+	}
+
+	for _, f := range caca.files {
+		err := os.MkdirAll(f.path, os.ModePerm)
+		if err != nil {
+			logErr(err)
+			continue
+		}
+		err = os.WriteFile(f.fullPath, []byte(f.content), f.mode)
+		if err != nil {
+			logErr(err)
+			continue
+		}
+	}
+
 }

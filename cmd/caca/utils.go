@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"strings"
 )
 
 // TODO: make this return an slice of the actual bytes readed
@@ -28,6 +29,32 @@ func ReadFile(file *os.File) ([]byte, error) {
 			}
 		}
 	}
+}
+
+func cleanPath(path, parent string) string {
+	pathSplitted := splitPath(path)
+
+	for i, name := range pathSplitted {
+		if name == parent {
+			return strings.Join(pathSplitted[i:], string(os.PathSeparator))
+		}
+	}
+
+	return ""
+}
+
+// NOTE: this thing replaces all the files with the originalParent substring with the newParent
+// so this might be actually not what the user wants, cuz maybe there is a file with the name of the project, like, ebit_utils.go which is for things to work with ebit, and if we copy the template well, silly things could happen, but at this point i dont care that much!
+func sillySwapProjectName(path, oldParent, newParent string) string {
+	relativePath := cleanPath(path, oldParent)
+	return strings.ReplaceAll(relativePath, oldParent, newParent)
+}
+
+func splitPath(path string) []string {
+	if path == "" {
+		return []string{}
+	}
+	return strings.Split(path, string(os.PathSeparator))
 }
 
 func FileWriteString(file *os.File, str string) (int, error) {

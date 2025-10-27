@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	DEV = "dev"
+	DEV  = "dev"
+	PROD = "prod"
 )
 
-var env = "dev"
+var env = DEV
 
 var (
 	INFO    = []string{"#fa9ebc", "INFO  :"}
@@ -67,6 +68,16 @@ func styleslog(logType []string, format string, a ...any) string {
 
 func logError(format string, a ...any) {
 	logln(ERROR, format, a...)
+}
+
+func prettyLogErr(err error, msg string) {
+	if env == DEV {
+		if err != nil {
+			logln(ERROR, "%s", err.Error())
+		}
+	} else {
+		logln(ERROR, "%s", msg)
+	}
 }
 
 func logErr(err error) {

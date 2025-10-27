@@ -1,14 +1,13 @@
+r:compile run
 compile:
-	go build -o ./bin/uwu -gcflags='all=-N -l' ./cmd/uwu   2> ./errors.err
-	
-c:
-	go build -o ./bin/uwu -gcflags='all=-N -l' ./cmd/uwu
+	@go build -o ./bin/uwu ./cmd/uwu
 	
 run:
+	@clear
 	./bin/uwu
 
 compile_test:
-	go test -v ./cmd/uwu 2> ./errors.err
+	@go test -v ./cmd/uwu
 
 test:
 	go test -v ./cmd/uwu
@@ -17,10 +16,10 @@ test_f:
 	go test -v -run $(FN) ./cmd/uwu
 
 debug:debug
-	env --chdir=./cmd/uwu gdlv debug
+	env --chdir=./cmd/uwu gdlv debug &
 	
 debugt:debugt
-	env --chdir=./cmd/uwu gdlv test
+	env --chdir=./cmd/uwu gdlv test &
 	
 debug_f:
-	env --chdir=./cmd/uwu gdlv test -run $(FN)
+	env --chdir=./cmd/uwu gdlv test -run $(FN) &
